@@ -52,7 +52,7 @@
 `githubaction membercenter 号码1@密码1 号码2@密码2 号码3@密码3 appId@xxxx liulactive@d@null@号码1-号码2@mygiftbag` 代表号码1、2和3进行正常签到且每天仅为号码1和2激活一个我的礼包里面的1g流量日包  
 `githubaction 号码1@密码1 号码2@密码2 号码3@密码3 appId@xxxx liulactive@m@xxxx` 代表每月1、2号为所有号码激活id值为xxxx的流量包，不进行签到活动  
 `githubaction 号码1@密码1 号码2@密码2 号码3@密码3 appId@xxxx liulactive@m@null@号码1-号码2@mygiftbag` 代表每月1、2号为所有号码激活一个我的礼包里面的1g流量日包，不进行签到活动  
-**可多次传入不同liulactive参数为不同号码激活不同流量包**
+**可多次传入不同liulactive参数为不同号码激活不同流量包**  
 运行开始时间也可以自己修改`.github/workflows/签到.yml`文件中`- cron: 05 23 * * *`，你想运行的北京时间减8就行了。05代表5分，23代表23时，就是0时区23：05的意思。
 
 触发运行方式：  

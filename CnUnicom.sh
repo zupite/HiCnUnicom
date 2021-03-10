@@ -154,7 +154,7 @@ function membercenter() {
     # 每日一次余量查询
     echo && echo
     curl -m 10 -sLA "$UA" -b $workdir/cookie --data "desmobile=$username&version=android@$unicom_version" "https://m.client.10010.com/mobileService/common/skip/queryLeavePackage.htm" >/dev/null
-    curl -m 10 -sLA "$UA" -b $workdir/cookie --data "type=0" "https://m.client.10010.com/mobileService/grow/marginCheck.htm"
+    curl -m 10 -sLA "$UA" -b $workdir/cookie --data "type=0" "https://m.client.10010.com/mobileService/grow/marginCheck.htm" >/dev/null
     
     # 签到
     echo && echo
@@ -256,13 +256,18 @@ function liulactive() {
         # 我的礼包-流量包-1G日包对应activeCode为73或者2534,当参数mygiftbag存在时运行: liulactive@d@ff80808166c5ee6701676ce21fd14716@13012341234@mygiftbag
         if [[ "$mygiftbag" != "" ]]; then
             curl -m 10 -X POST -sA "$UA"  -b $workdir/cookie --data "typeScreenCondition=2&category=FFLOWPACKET&pageSign=1&CALLBACKURL=https%3A%2F%2Fm.client.10010.com%2FmyPrizeForActivity%2Fquerywinninglist.htm" http://m.client.10010.com/myPrizeForActivity/mygiftbag.htm >$workdir/libaollactive.log
-            mygiftbaglist=($(cat $workdir/libaollactive.log | grep -oE "(73|2534)','[a-zA-Z0-9]+" | sed "s/','/@/g" | tr "\n" " "))
+            endtimeliststemp=($(cat $workdir/libaollactive.log | grep -A 50 -E "'(73|2534)','[a-zA-Z0-9]+" | grep -E "(onclick|boxBG_footer_leftTime)" | grep -oE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" | sed "1~2d" | tr "\n" " "))
+            endtimelistsince=($(for endtime in ${endtimeliststemp[*]}; do date -d "$endtime 23:59:59" +"%s"; done | tr "\n" " "))
+            yesterdaytimesince=$(date -d "$(date +%Y-%m-%d -d "-1 days") 23:59:59" +"%s")
+            # 优先激活临期的流量礼包
+            mygiftbagtemp=($(cat $workdir/libaollactive.log | grep -oE "'(73|2534)','[a-zA-Z0-9]+" | sed -e "s/','/@/g" -e "s/^'//g"  | tr "\n" " "))
+            mygiftbaglist=($(for ((j = 0; j < ${#mygiftbagtemp[*]}; j++)); do echo ${endtimelistsince[j]}@${mygiftbagtemp[j]}; done | awk -F@ -v yesterdaytimesince="$yesterdaytimesince" '$1 > yesterdaytimesince {print $0}' | sort | grep -oE "(73|2534)@[a-zA-Z0-9]+$" | tr "\n" " "))
             for ((j = 0; j < ${#mygiftbaglist[*]}; j++)); do
                 curl -m 10 -X POST -sA "$UA"  -b $workdir/cookie --data "activeCode=${mygiftbaglist[j]%@*}&prizeRecordID=${mygiftbaglist[j]#*@}&userNumber=${username}" http://m.client.10010.com/myPrizeForActivity/queryPrizeDetails.htm >$workdir/libaollactive.log2
                 cat $workdir/libaollactive.log2 | grep -A 15 "奖品状态" | grep -qE "(未激活|激活失败)" || continue
                 libaollName=$(urlencode $(cat $workdir/libaollactive.log2 | grep "id=\"activeName" | cut -f4 -d\") | tr "a-z" "A-Z")
                 curl -m 10 -X POST -sA "$UA"  -b $workdir/cookie --data "activeCode=${mygiftbaglist[j]%@*}&prizeRecordID=${mygiftbaglist[j]#*@}&activeName=$libaollName" http://m.client.10010.com/myPrizeForActivity/myPrize/activationFlowPackages.htm | grep -oE "activationlimit"  && echo 我的礼包-流量包-1G日包-激活失败 >>$workdir/liulactive.info && break
-                sleep 10
+                sleep 120
                 curl -m 10 -X POST -sA "$UA"  -b $workdir/cookie --data "activeCode=${mygiftbaglist[j]%@*}&prizeRecordID=${mygiftbaglist[j]#*@}&userNumber=${username}" http://m.client.10010.com/myPrizeForActivity/queryPrizeDetails.htm | grep -A 15 "奖品状态" | grep -qE "已激活" && echo 我的礼包-流量包-1G日包-激活成功 >>$workdir/liulactive.info && break
             done
         fi      
