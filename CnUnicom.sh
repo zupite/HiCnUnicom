@@ -221,6 +221,12 @@ function membercenter() {
         curl -m 10 -X POST -sA "$UA" -b $workdir/cookie --data "stepflag=22" https://act.10010.com/SigninApp/mySignin/addFlow >/dev/null; sleep 3
         curl -m 10 -X POST -sA "$UA" -b $workdir/cookie --data "stepflag=23" https://act.10010.com/SigninApp/mySignin/addFlow | grep -oE "reason\":\"01" && break
     done
+
+    if [ $u == $((${#all_username_password[*]}-1)) ]; then
+            break
+        else
+            sleep 70
+    fi
 }
 
 function liulactive() {
@@ -370,17 +376,17 @@ function formatsendinfo() {
     if $(echo ${all_parameter[*]} | grep -qE "sendsimple"); then
         echo ${userlogin_ook[u]} ${#userlogin_ook[*]} Accomplished. ${userlogin_err[u]} ${#userlogin_err[*]} Failed. >$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "otherinfo"     && echo 可用余额:$curntbalancecust 实时话费:$realfeecust >>$formatsendinfo_file
-        echo ${all_parameter[*]} | grep -qE "jifeninfo"     && echo 积分:$total-$availablescore-$yesterdayscore/$todayscore >>$formatsendinfo_file
+        echo ${all_parameter[*]} | grep -qE "jifeninfo"     && echo 积分:$total-$availablescore-$todayscore >>$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "hfgoactive"    && echo 话费购奖品: $(cat $workdir/hfgoactive.info | tail -n +2) >>$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "freescoregift" && echo 定向积分免费商品数量:$(cat $workdir/freescoregift.info | tail -n +3 | grep -cv '^$') >>$formatsendinfo_file
-        echo ${all_parameter[*]} | grep -qE "liulactive" && [[ -f $workdir/liulactive.info ]] && echo 流量激活: $(cat $workdir/liulactive.info) >>$formatsendinfo_file
+        echo ${all_parameter[*]} | grep -qE "liulactive" && [[ -f $workdir/liulactive.info ]] && [[ $(cat $workdir/liulactive.info) != "" ]] && echo 流量激活: $(cat $workdir/liulactive.info) >>$formatsendinfo_file
     else
         echo ${userlogin_err[u]} ${#userlogin_err[*]} Failed. ${userlogin_ook[u]} ${#userlogin_ook[*]} Accomplished. >$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "otherinfo" && cat $workdir/otherinfo.info >>$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "jifeninfo" && echo $(echo ${username:0:2}******${username:9}) 总积分:$total 本月将过期积分:$invalid 可用积分:$canUse 奖励积分:$availablescore 本月将过期奖励积分:$invalidscore 本月新增奖励积分:$addScore 本月消耗奖励积分:$decrScore 昨日奖励积分:$yesterdayscore 今日奖励积分:$todayscore >>$formatsendinfo_file
         echo ${all_parameter[*]} | grep -qE "hfgoactive" && cat $workdir/hfgoactive.info >>$formatsendinfo_file
         [[ $u == $((${#all_username_password[*]}-1)) ]] && echo ${all_parameter[*]} | grep -qE "freescoregift" && cat $workdir/freescoregift.info >>$formatsendinfo_file
-        echo ${all_parameter[*]} | grep -qE "liulactive" && [[ -f $workdir/liulactive.info ]] && echo 流量激活: $(cat $workdir/liulactive.info) >>$formatsendinfo_file
+        echo ${all_parameter[*]} | grep -qE "liulactive" && [[ -f $workdir/liulactive.info ]] && [[ $(cat $workdir/liulactive.info) != "" ]] && echo 流量激活: $(cat $workdir/liulactive.info) >>$formatsendinfo_file
     fi
     cat $formatsendinfo_file
 }
